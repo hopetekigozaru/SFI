@@ -1,5 +1,5 @@
 import Header from "@/components/Header"
-import { Three } from "@/feaures/sample/components/three"
+import { Three } from "@/features/sample/components/three"
 
 
 export default function Sample () {
