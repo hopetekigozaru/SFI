@@ -1,10 +1,11 @@
 import Header from "@/components/Header"
+import { Three } from "@/features/sample/components/three"
+
 
 export default function Sample () {
     return (
-        <div>
-            <Header/>
-            <h1>Sample</h1>
+        <div className="w-full h-full">
+            
         </div>
     )
 }
