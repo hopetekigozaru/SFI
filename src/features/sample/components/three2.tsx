@@ -1,17 +1,14 @@
 "use client"
 import { useEffect } from 'react'
 import * as THREE from 'three'
-import { BufferGeometryUtils, EffectComposer, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
 
-
-
-export const Three = () => {
+export const Three2 = () => {
     let canvas: HTMLElement;
     let renderer: THREE.WebGLRenderer;
     let camera: THREE.PerspectiveCamera;
 
     useEffect(() => {
-
         canvas = document.createElement('canvas')!;
         const scene = new THREE.Scene();
 
@@ -27,83 +24,84 @@ export const Three = () => {
             1000
         );
 
-
-
         renderer = new THREE.WebGLRenderer({
             canvas: canvas || undefined,
             antialias: true,
             alpha: true
         });
-
         renderer.setSize(sizes.width, sizes.height);
         renderer.setPixelRatio(window.devicePixelRatio);
-        scene.background = new THREE.Color('#21354C');
-        
-
-        // レンダリング用のRenderPassを作成
-        const renderPass = new RenderPass(scene, camera);
-
-
 
         let canvasContainer = document.getElementById('canvasContainer');
         canvasContainer?.appendChild(canvas);
 
+        const toonMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uColor: { value: new THREE.Color(0x00ff00) }, // 緑色
+                uEmissiveColor: { value: new THREE.Color(0x00ff00) }, // 発光色
+                uEmissiveIntensity: { value: 2.0 } // 発光の強度
+            },
+            vertexShader: `
+                varying vec3 vNormal;
+                void main() {
+                    vNormal = normal;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vNormal;
+                uniform vec3 uColor;
+                uniform vec3 uEmissiveColor;
+                uniform float uEmissiveIntensity;
+                void main() {
+                    float intensity = dot(normalize(vNormal), vec3(0.0, 0.0, 1.0));
+                    vec3 finalColor = uColor * intensity;
+                    vec3 emissive = uEmissiveColor * uEmissiveIntensity;
+                    gl_FragColor = vec4(finalColor + emissive, 1.0);
+                }
+            `
+        });
 
-        // メインの緑色の球体
-        const mainSphere = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.MeshLambertMaterial({
-            color: 'green',
-            emissive: 0x00ff00, // 自発光の色
-            emissiveIntensity: 2,
-        }));
+        const mainSphere = new THREE.Mesh(new THREE.SphereGeometry(7, 32, 16), toonMaterial);
         scene.add(mainSphere);
 
-        // ジオメトリを結合するための配列
+        const outlineMaterial = new THREE.MeshToonMaterial({
+            color: 0x000000,
+            side: THREE.BackSide // 背面をレンダリング
+        });
+
+        const outlineMesh = new THREE.Mesh(mainSphere.geometry.clone(), outlineMaterial);
+        outlineMesh.scale.multiplyScalar(1.08); // 球体のサイズよりも大きなアウトラインを描画
+        mainSphere.add(outlineMesh);
+
         const geometryArray = []
-        // 輪
-        const torus = new THREE.TorusGeometry(20, 0.05, 30, 100);
+
+        const torus = new THREE.TorusGeometry(20, 0.25, 30, 100);
         geometryArray.push(torus);
 
-        // 輪の玉
         const subSphere = new THREE.SphereGeometry(0.8, 32, 16);
         const subSphereTrans = subSphere.translate(0, 20, 0);
         geometryArray.push(subSphereTrans);
 
-        // ジオメトリ結合
         const geometry = BufferGeometryUtils.mergeGeometries(geometryArray);
 
-        const material = new THREE.MeshToonMaterial({ color: 'white' });
+        const material = new THREE.MeshToonMaterial();
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.y = 2;
         mesh.rotation.y = 500;
-        mesh.rotation.x = -299.8;
+        mesh.rotation.x = -299.9;
 
         scene.add(mesh);
 
-
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
-        directionalLight.position.set(1, 1, 1).normalize(); // ライトの位置を設定
-        scene.add(directionalLight);
-
+        // MainSphere内部の発光用の光源を作成
         const innerLight = new THREE.PointLight(0x00ff00, 2, 20); // 光源の色、強度、距離
         mainSphere.add(innerLight); // MainSphereの内部に光源を追加
 
+        // 内部の光源の位置を調整（必要に応じて）
+        innerLight.position.set(0, 0, 0); // MainSphereの中心に配置
 
-        camera.position.set(0, 0, 30);
+        camera.position.set(0, 0, 50);
         camera.lookAt(mainSphere.position);
-
-        // 光エフェクト設定
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.3,  // 強度
-            0.4,  // 半径
-            0.85  // 閾値
-        );
-
-
-        const composer = new EffectComposer(renderer);
-        composer.addPass(renderPass);
-        composer.addPass(bloomPass);
 
         const handleResize = () => {
             // ウィンドウのサイズを取得
@@ -124,8 +122,7 @@ export const Three = () => {
         const animate = () => {
             requestAnimationFrame(animate);
             mesh.rotation.z += -0.02;
-            // renderer.render(scene, camera);
-            composer.render();
+            renderer.render(scene, camera);
         };
 
         animate();
