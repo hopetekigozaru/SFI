@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import * as THREE from 'three'
 import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js'
 
-export const Three = () => {
+export const Three2 = () => {
     let canvas: HTMLElement
     let renderer: THREE.WebGLRenderer
     let camera: THREE.PerspectiveCamera

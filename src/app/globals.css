@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: "NicoMoji";
+    src: url("../../public/fonts/NICOMOJI-PLUS_V2.TTF") format("truetype");
+    /* 追加のフォント形式をサポートする場合、ここに追加してください */
+}
