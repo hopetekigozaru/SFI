@@ -1,52 +1,52 @@
-"use client"
+'use client'
 import { useEffect } from 'react'
 import * as THREE from 'three'
-import { BufferGeometryUtils, EffectComposer, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { BufferGeometryUtils, EffectComposer, RenderPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js'
 
 
 
 export const Three = () => {
-    let canvas: HTMLElement;
-    let renderer: THREE.WebGLRenderer;
-    let camera: THREE.PerspectiveCamera;
+    let canvas: HTMLElement
+    let renderer: THREE.WebGLRenderer
+    let camera: THREE.PerspectiveCamera
 
     useEffect(() => {
 
-        canvas = document.createElement('canvas')!;
-        const scene = new THREE.Scene();
+        canvas = document.createElement('canvas')!
+        const scene = new THREE.Scene()
 
         const sizes = {
             width: window.innerWidth,
-            height: window.innerHeight
-        };
+            height: window.innerHeight,
+        }
 
         camera = new THREE.PerspectiveCamera(
             75,
             sizes.width / sizes.height,
             0.1,
-            1000
-        );
+            1000,
+        )
 
 
 
         renderer = new THREE.WebGLRenderer({
             canvas: canvas || undefined,
             antialias: true,
-            alpha: true
-        });
+            alpha: true,
+        })
 
-        renderer.setSize(sizes.width, sizes.height);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(sizes.width, sizes.height)
+        renderer.setPixelRatio(window.devicePixelRatio)
         scene.background = new THREE.Color('#21354C');
-        
+
 
         // レンダリング用のRenderPassを作成
         const renderPass = new RenderPass(scene, camera);
 
 
 
-        let canvasContainer = document.getElementById('canvasContainer');
-        canvasContainer?.appendChild(canvas);
+        let canvasContainer = document.getElementById('canvasContainer')
+        canvasContainer?.appendChild(canvas)
 
 
         // メインの緑色の球体
@@ -78,7 +78,7 @@ export const Three = () => {
         mesh.rotation.y = 500;
         mesh.rotation.x = -299.8;
 
-        scene.add(mesh);
+        scene.add(mesh)
 
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
@@ -107,19 +107,19 @@ export const Three = () => {
 
         const handleResize = () => {
             // ウィンドウのサイズを取得
-            const width = window.innerWidth;
-            const height = window.innerHeight;
+            const width = window.innerWidth
+            const height = window.innerHeight
 
             // レンダラーのサイズを変更
-            renderer.setSize(width, height);
+            renderer.setSize(width, height)
 
             // カメラのアスペクト比を更新
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-        };
+            camera.aspect = width / height
+            camera.updateProjectionMatrix()
+        }
 
         // ウィンドウのリサイズイベントを監視
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', handleResize)
 
         const animate = () => {
             requestAnimationFrame(animate);
@@ -128,15 +128,13 @@ export const Three = () => {
             composer.render();
         };
 
-        animate();
+        animate()
 
         return () => {
-            window.removeEventListener('resize', handleResize);
-            canvasContainer?.removeChild(canvas);
-        };
-    }, []);
+            window.removeEventListener('resize', handleResize)
+            canvasContainer?.removeChild(canvas)
+        }
+    }, [])
 
-    return (
-        <div id='canvasContainer'></div>
-    );
-};
+    return <div id="canvasContainer"></div>
+}
