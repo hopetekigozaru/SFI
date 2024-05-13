@@ -33,7 +33,7 @@ export default function RootLayout({
                     rel="stylesheet"
                 ></link>
             </head>
-            <body className="bg-customBackground">{children}</body>
+            <body className="bg-primary">{children}</body>
         </html>
     )
 }
