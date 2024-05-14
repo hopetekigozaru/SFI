@@ -42,7 +42,7 @@ export default function RootLayout({
 										height={65}
 									/>
 								</div>
-								<Header/>
+								<Header />
 							</div>
 						</div>
 						<div className='h-[85%] w-full flex'>
