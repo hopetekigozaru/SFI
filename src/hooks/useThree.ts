@@ -18,7 +18,7 @@ export default function useThree(
         if (!canvasRef.current) {
             return
         }
-        const mediaQuery = window.matchMedia('(max-width: 768px)')
+        const mediaQueryMobile = window.matchMedia('(max-width: 768px)')
 
         const newRenderer = new THREE.WebGLRenderer({
             canvas: canvasRef.current,
@@ -30,8 +30,8 @@ export default function useThree(
         setRenderer(newRenderer)
 
         const newCamera = new THREE.PerspectiveCamera()
-        if (mediaQuery.matches) {
-            newCamera.position.set(0, 0, 50)
+        if (mediaQueryMobile.matches) {
+            newCamera.position.set(0, 0, 80)
         } else {
             newCamera.position.set(0, 0, 50)
         }
@@ -105,8 +105,13 @@ export default function useThree(
 
         // 初期化のために実行
         onResize()
+
         // リサイズイベント発生時に実行
-        window.addEventListener('resize', onResize)
+        let resizeTimeout: NodeJS.Timeout
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout)
+            resizeTimeout = setTimeout(onResize, 300) // 200msの遅延後にonResizeを実行
+        })
 
         function onResize() {
             if (!renderer || !camera) {
@@ -115,6 +120,7 @@ export default function useThree(
             // サイズを取得
             const width = window.innerWidth
             const height = window.innerHeight
+            console.log(window.innerWidth, window.innerHeight)
 
             // レンダラーのサイズを調整する
             renderer.setPixelRatio(window.devicePixelRatio)
@@ -137,81 +143,95 @@ export default function useThree(
         return () => {
             window.removeEventListener('resize', onResize)
         }
-    }, [renderer, camera])
+    }, [renderer, camera, scene])
 
-    const topNextAnime = () => {
-        if (!camera) {
-            return
-        }
-        let animationId
+    const mediaQueryMobile = window.matchMedia('(max-width: 767px)')
+    const mediaQueryTablet = window.matchMedia(
+        '(min-width: 768px) and (max-width: 1024px)',
+    )
+
+    const topNextAnime = (callback: () => void) => {
+        if (!camera) return
+
+        let animationId: number
         const currentZ = camera.position.z
-        const targetZ = 15
-        const distanceToTarget = Math.abs(currentZ - targetZ) // 現在位置から目標位置までの距離
-
-        // イーズイン、イーズアウトの速度制御
-        const easeFactor = 0.04 // イーズインおよびイーズアウトの速度調整パラメータ
-
+        let targetZ
+        let easeFactor
+        if (mediaQueryMobile.matches) {
+            targetZ = 25
+            easeFactor = 0.02
+        } else if (mediaQueryTablet.matches) {
+            targetZ = 20
+            easeFactor = 0.02
+        } else {
+            targetZ = 15
+            easeFactor = 0.02
+        }
+        const distanceToTarget = Math.abs(currentZ - targetZ)
         const speed = distanceToTarget * easeFactor
-
-        // カメラの移動方向を決定するために目標位置と現在位置の比較
         const direction = targetZ < currentZ ? -1 : 1
 
-        // 目標位置に近づける
-        if (currentZ > targetZ) {
-            const newPositionZ = currentZ + speed * direction
+        const animate = () => {
+            if (Math.abs(camera.position.z - targetZ) < 0.1) {
+                camera.position.z = targetZ
+                camera.updateProjectionMatrix()
+                cancelAnimationFrame(animationId)
+                callback()
+                return
+            }
 
-            // 移動が目標位置を超えたら、目標位置に設定
+            const newPositionZ = camera.position.z + speed * direction
             camera.position.z =
                 direction === 1
                     ? Math.min(newPositionZ, targetZ)
                     : Math.max(newPositionZ, targetZ)
-            console.log(camera.position.z)
-
-            camera.updateProjectionMatrix() // カメラの更新を反映
-            animationId = requestAnimationFrame(topNextAnime)
-
-            if (Math.floor(camera.position.z) === targetZ) {
-                cancelAnimationFrame(animationId)
-            }
+            camera.updateProjectionMatrix()
+            animationId = requestAnimationFrame(animate)
         }
+
+        animate()
     }
 
-    const aboutPrevAnime = () => {
-        if (!camera) {
-            return
-        }
+    const aboutPrevAnime = (callback: () => void) => {
+        if (!camera) return
 
-        let animationId
+        let animationId: number
         const currentZ = camera.position.z
-        const targetZ = 50
-        const distanceToTarget = Math.abs(currentZ - targetZ) // 現在位置から目標位置までの距離
-
-        // イーズイン、イーズアウトの速度制御
-        const easeFactor = 0.01 // イーズインおよびイーズアウトの速度調整パラメータ
-
+        let targetZ
+        let easeFactor
+        if (mediaQueryMobile.matches) {
+            targetZ = 80
+            easeFactor = 0.01
+        } else if (mediaQueryTablet.matches) {
+            targetZ = 50
+            easeFactor = 0.01
+        } else {
+            targetZ = 50
+            easeFactor = 0.01
+        }
+        const distanceToTarget = Math.abs(currentZ - targetZ)
         const speed = distanceToTarget * easeFactor
-
-        // カメラの移動方向を決定するために目標位置と現在位置の比較
         const direction = targetZ > currentZ ? 1 : -1
 
-        // 目標位置に近づける
-        if (currentZ < targetZ) {
-            const newPositionZ = currentZ + speed * direction
+        const animate = () => {
+            if (Math.abs(camera.position.z - targetZ) < 0.1) {
+                camera.position.z = targetZ
+                camera.updateProjectionMatrix()
+                cancelAnimationFrame(animationId)
+                callback()
+                return
+            }
 
-            // 移動が目標位置を超えたら、目標位置に設定
+            const newPositionZ = camera.position.z + speed * direction
             camera.position.z =
                 direction === 1
                     ? Math.min(newPositionZ, targetZ)
                     : Math.max(newPositionZ, targetZ)
-            console.log(camera.position.z)
-
-            camera.updateProjectionMatrix() // カメラの更新を反映
-
-            animationId = requestAnimationFrame(aboutPrevAnime)
-            if (Math.floor(camera.position.z) === targetZ - 1) {
-                cancelAnimationFrame(animationId)
-            }
+            camera.updateProjectionMatrix()
+            animationId = requestAnimationFrame(animate)
         }
+
+        animate()
     }
 
     return {
