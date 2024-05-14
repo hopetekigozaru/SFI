@@ -81,7 +81,7 @@ const About: React.FC<AboutProps> = ({ setIndex, eventFlg }) => {
             id="mainSection"
             className="size-full flex items-end animate-fade-in p-3 md:p-0"
         >
-            <div className="h-[90%] w-full">
+            <div className="h-[80%] w-full">
                 <div className="h-[10%] w-full flex items-center md:justify-center">
                     <p className="text-xl md:text-4xl font-zen-maru font-bold">
                         人と人を技術でつなぐ
@@ -89,7 +89,7 @@ const About: React.FC<AboutProps> = ({ setIndex, eventFlg }) => {
                 </div>
                 <div className="h-[35%] w-full flex flex-col md:items-center justify-center">
                     <div className="w-fit">
-                        <div className="h-[30%]">
+                        <div className="h-[50%]">
                             <p className="text-lg font-zen-maru font-bold">
                                 「ITとどう向き合っていくか？」をお客様と一緒にトコトン考えます。
                             </p>

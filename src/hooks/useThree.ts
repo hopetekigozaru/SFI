@@ -13,6 +13,15 @@ export default function useThree(
     const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null)
     const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null)
     const [scene] = useState<THREE.Scene>(new THREE.Scene())
+    const [mediaQueryMobile, setMediaQueryMobile] = useState<MediaQueryList>()
+    const [mediaQueryTablet, setMediaQueryTablet] = useState<MediaQueryList>()
+
+    useEffect(() => {
+        setMediaQueryMobile(window.matchMedia('(max-width: 767px)'))
+        setMediaQueryTablet(
+            window.matchMedia('(min-width: 768px) and (max-width: 1024px)'),
+        )
+    }, [])
 
     useEffect(() => {
         if (!canvasRef.current) {
@@ -145,13 +154,9 @@ export default function useThree(
         }
     }, [renderer, camera, scene])
 
-    const mediaQueryMobile = window.matchMedia('(max-width: 767px)')
-    const mediaQueryTablet = window.matchMedia(
-        '(min-width: 768px) and (max-width: 1024px)',
-    )
-
     const topNextAnime = (callback: () => void) => {
         if (!camera) return
+        if (!mediaQueryMobile || !mediaQueryTablet) return
 
         let animationId: number
         const currentZ = camera.position.z
@@ -194,7 +199,7 @@ export default function useThree(
 
     const aboutPrevAnime = (callback: () => void) => {
         if (!camera) return
-
+        if (!mediaQueryMobile || !mediaQueryTablet) return
         let animationId: number
         const currentZ = camera.position.z
         let targetZ

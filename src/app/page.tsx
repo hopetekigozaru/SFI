@@ -1,4 +1,5 @@
 'use client'
+import Header from '@/components/Header'
 import About from '@/features/components/About'
 import Top from '@/features/components/Top'
 import useThree from '@/hooks/useThree'
@@ -50,7 +51,7 @@ export default function Home() {
     }, [pageIndex, currentIndex, topNextAnime, aboutPrevAnime])
 
     return (
-        <div className="h-screen w-full  z-10 relative">
+        <div className="h-screen w-screen  z-10 relative">
             <div className="size-full absolute">
                 <div className="top-0 flex items-center justify-center h-[15%] w-full">
                     <div className="w-[95%] h-[70%] flex justify-between">
@@ -62,9 +63,9 @@ export default function Home() {
                                 height={65}
                             />
                         </div>
-                        {/* <div className="bg-gray-400 h-full w-[50%] flex items-center justify-end">
-                            ここにヘッダー
-                        </div> */}
+                        <div className="h-full w-[50%] flex items-center justify-end">
+                            <Header />
+                        </div>
                     </div>
                 </div>
                 <div className="h-[85%] w-full flex flex-col-reverse md:flex-row">
@@ -76,14 +77,14 @@ export default function Home() {
                                 </p>
                             </div>
                         </div>
-                        <div className="w-1/2 h-1/5] md:h-[30%] flex items-end">
+                        <div className="w-1/2 h-1/5 md:h-[30%] flex items-end">
                             <div className="border-r border-solid border-white size-full"></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="size-full">{currentPage}</div>
-            <div className="z-[-1] absolute top-0">
+            <div className="z-[-1] absolute top-0 size-full">
                 <canvas ref={canvasRef} />
             </div>
         </div>
