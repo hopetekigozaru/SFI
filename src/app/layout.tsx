@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import './header.css'
 import Image from 'next/image'
 import Logo from '../../public/images/logo/Frame 3 (1).png'
 import { Three } from '@/features/sample/components/three'
+import Header from '@/components/Header';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -40,9 +42,7 @@ export default function RootLayout({
 										height={65}
 									/>
 								</div>
-								<div className='bg-gray-400 h-full w-[50%] flex items-center justify-end'>
-									ここにヘッダー
-								</div>
+								<Header/>
 							</div>
 						</div>
 						<div className='h-[85%] w-full flex'>
