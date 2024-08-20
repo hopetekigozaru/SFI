@@ -1,10 +1,21 @@
-import { Dispatch, SetStateAction, useEffect } from 'react'
+'use client'
+import {
+    Dispatch,
+    MutableRefObject,
+    SetStateAction,
+    useEffect,
+    useState,
+} from 'react'
+import { setTimeout } from 'timers'
 
-interface AboutProps {
-    setIndex: Dispatch<SetStateAction<number>> // 正しい型指定に修正
+interface InfoProps {
+    setIndex: Dispatch<SetStateAction<number>>
+    eventFlg: MutableRefObject<boolean>
 }
 
-const About: React.FC<AboutProps> = ({ setIndex }) => {
+const Info: React.FC<InfoProps> = ({ setIndex, eventFlg }) => {
+    const [startY, setStartY] = useState(0)
+
     useEffect(() => {
         const content: HTMLElement | null =
             document.getElementById('mainSection')
@@ -14,10 +25,8 @@ const About: React.FC<AboutProps> = ({ setIndex }) => {
 
                 if (event.deltaY > 0) {
                     eventFlg.current = true
-                    content.classList.remove('animate-fade-in')
-                    content.classList.add('animate-fade-out')
+
                     setTimeout(() => {
-                        setIndex(2)
                         eventFlg.current = false
                     }, 1000)
 
@@ -27,8 +36,9 @@ const About: React.FC<AboutProps> = ({ setIndex }) => {
 
                     content.classList.remove('animate-fade-in')
                     content.classList.add('animate-fade-out')
+                    console.log(0)
                     setTimeout(() => {
-                        setIndex(0)
+                        setIndex(1)
                         eventFlg.current = false
                     }, 1000)
                 }
@@ -53,7 +63,7 @@ const About: React.FC<AboutProps> = ({ setIndex }) => {
                         content.classList.remove('animate-fade-in')
                         content.classList.add('animate-fade-out')
                         setTimeout(() => {
-                            setIndex(0)
+                            setIndex(1)
                             eventFlg.current = false
                         }, 1000)
                     }
@@ -66,10 +76,20 @@ const About: React.FC<AboutProps> = ({ setIndex }) => {
 
             return () => {
                 window.removeEventListener('wheel', handleWheel)
+                window.removeEventListener('touchstart', handleTouchStart)
+                window.removeEventListener('touchmove', handleTouchMove)
             }
-        }, [setIndex]) // setIndexを依存リストに追加
+        }
+    }, [setIndex, eventFlg, startY])
 
-    return <div>aaaaaaaaaaaaaa</div>
+    return (
+        <section
+            id="mainSection"
+            className="size-full flex items-end animate-fade-in p-3 md:p-0"
+        >
+            aa
+        </section>
+    )
 }
 
-export default About
+export default Info
