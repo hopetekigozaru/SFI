@@ -1,11 +1,13 @@
+'use client'
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
+import { createComposer } from '../../three/Create/createComposer'
 import {
-    BufferGeometryUtils,
-    EffectComposer,
-    RenderPass,
-    UnrealBloomPass,
-} from 'three/examples/jsm/Addons.js'
+    createDirectionalLight,
+    createPointLight,
+} from '../../three/Create/createLight'
+import { createMainObject } from '../../three/Create/createMainGeometry'
+import { createSubObject } from '../../three/Create/createSubObject'
 
 export default function useThree(
     canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -53,64 +55,27 @@ export default function useThree(
             return // rendererがnullの場合は何もしない
         }
 
-        scene.background = new THREE.Color('#21354C')
-
-        // メインの緑色の球体
-        const mainSphere = new THREE.Mesh(
-            new THREE.SphereGeometry(10, 64, 32),
-            new THREE.MeshLambertMaterial({
-                color: 'green',
-                emissive: 0x00ff00, // 自発光の色
-                emissiveIntensity: 2,
-            }),
+        const { resize, resizeEvent, cleanResizeEvent } = onResize(
+            renderer,
+            camera,
         )
-        scene.add(mainSphere)
-        camera.lookAt(mainSphere.position)
 
-        // ジオメトリを結合するための配列
-        const geometryArray = []
-        // 輪
-        const torus = new THREE.TorusGeometry(20, 0.05, 30, 100)
-        geometryArray.push(torus)
+        const yellow = new THREE.Color(0, 1, 2)
 
-        // 輪の玉
-        const subSphere = new THREE.SphereGeometry(0.8, 32, 16)
-        const subSphereTrans = subSphere.translate(0, 20, 0)
-        geometryArray.push(subSphereTrans)
+        const mainSphere = createMainObject(0, 0, 0, scene, yellow, 10)
+        setLines(createSubObject(scene))
 
-        // ジオメトリ結合
-        const geometry = BufferGeometryUtils.mergeGeometries(geometryArray)
+        const directionalLight = createDirectionalLight()
 
-        const material = new THREE.MeshToonMaterial({ color: 'white' })
+        const pointLight = createPointLight()
 
-        const mesh = new THREE.Mesh(geometry, material)
-        mesh.position.y = 2
-        mesh.rotation.y = 500
-        mesh.rotation.x = -299.8
+        mainSphere.add(pointLight) // MainSphereの内部に光源を追加
 
-        scene.add(mesh)
-
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 5)
-        directionalLight.position.set(1, 1, 1).normalize() // ライトの位置を設定
+        scene.background = new THREE.Color('#21354C')
+        scene.add(directionalLight)
         scene.add(directionalLight)
 
-        const innerLight = new THREE.PointLight(0x00ff00, 2, 20) // 光源の色、強度、距離
-        mainSphere.add(innerLight) // MainSphereの内部に光源を追加
-
-        // レンダリング用のRenderPassを作成
-        const renderPass = new RenderPass(scene, camera)
-
-        // 光エフェクト設定
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            0.3, // 強度
-            0.4, // 半径
-            0.85, // 閾値
-        )
-
-        const composer = new EffectComposer(renderer)
-        composer.addPass(renderPass)
-        composer.addPass(bloomPass)
+        const composer = createComposer(renderer, scene, camera)
 
         // 初期化のために実行
         onResize()
@@ -142,8 +107,7 @@ export default function useThree(
 
         const animate = () => {
             requestAnimationFrame(animate)
-            mesh.rotation.z += -0.02
-            // renderer.render(scene, camera);
+            mainSphere.children[1].rotation.z += -0.02
             composer.render()
         }
 
@@ -244,8 +208,10 @@ export default function useThree(
         renderer,
         camera,
         scene,
-        topNextAnime,
-        aboutPrevAnime,
+        moveCameraZ,
         canvas: canvasRef.current,
+        lineAddOpacity,
+        lineRemoveOpacity,
+        lines,
     }
 }

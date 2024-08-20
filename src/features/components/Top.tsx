@@ -81,18 +81,18 @@ const Top: React.FC<TopProps> = ({ setIndex, eventFlg }) => {
     return (
         <section
             id="mainSection"
-            className="size-full flex justify-end md:items-end animate-fade-in"
+            className="flex size-full animate-fade-in justify-end md:items-end"
         >
-            <div className="w-full md:w-2/5 h-2/5">
+            <div className="h-2/5 w-full md:w-2/5">
                 <div className="size-full">
-                    <div className="flex size-full md:block items-center justify-center flex-col">
-                        <p className="text-white text-4xl md:text-[360%] text-center md:text-start tracking-[0.5rem] leading-[3.5rem] md:leading-[5rem] font-zen-maru font-bold">
+                    <div className="flex size-full flex-col items-center justify-center md:block">
+                        <p className="text-center font-zen-maru text-4xl font-bold leading-[3.5rem] tracking-[0.5rem] text-white md:text-start md:text-[360%] md:leading-[5rem]">
                             人と人を技術
                             <br />
                             でつなぐ。
                         </p>
-                        <div className="w-full flex justify-center md:justify-start">
-                            <p className="text-white font-nico tracking-[0.5rem] border-b border-solid border-white w-fit">
+                        <div className="flex w-full justify-center md:justify-start">
+                            <p className="w-fit border-b border-solid border-white font-nico tracking-[0.5rem] text-white">
                                 apical-point
                             </p>
                         </div>

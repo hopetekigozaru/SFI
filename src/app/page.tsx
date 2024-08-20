@@ -1,6 +1,7 @@
 'use client'
 import Header from '@/components/Header'
 import About from '@/features/components/About'
+import Info from '@/features/components/Info'
 import Top from '@/features/components/Top'
 import useThree from '@/hooks/useThree'
 import Image from 'next/image'
@@ -51,11 +52,11 @@ export default function Home() {
     }, [pageIndex, currentIndex, topNextAnime, aboutPrevAnime])
 
     return (
-        <div className="h-screen w-screen  z-10 relative">
-            <div className="size-full absolute">
-                <div className="top-0 flex items-center justify-center h-[15%] w-full">
-                    <div className="w-[95%] h-[70%] flex justify-between">
-                        <div className="h-full w-[10%] flex items-center">
+        <div className="relative z-10  h-screen w-screen">
+            <div className="absolute size-full">
+                <div className="top-0 flex h-[15%] w-full items-center justify-center">
+                    <div className="flex h-[70%] w-[95%] justify-between">
+                        <div className="flex h-full w-[10%] items-center">
                             <Image
                                 src={Logo}
                                 alt="ロゴ"
@@ -63,28 +64,28 @@ export default function Home() {
                                 height={65}
                             />
                         </div>
-                        <div className="h-full w-[50%] flex items-center justify-end">
+                        <div className="flex h-full w-[50%] items-center justify-end">
                             <Header />
                         </div>
                     </div>
                 </div>
-                <div className="h-[85%] w-full flex flex-col-reverse md:flex-row">
-                    <div className="size-full  md:w-1/5 flex flex-col justify-end">
-                        <div className="w-full h-[30%] md:h-1/2 flex items-end md:items-center justify-center">
+                <div className="flex h-[85%] w-full flex-col-reverse md:flex-row">
+                    <div className="flex  size-full flex-col justify-end md:w-1/5">
+                        <div className="flex h-[30%] w-full items-end justify-center md:h-1/2 md:items-center">
                             <div className="size-fit md:rotate-90">
-                                <p className="text-white font-nico tracking-[1rem] text-center text-xl">
+                                <p className="text-center font-nico text-xl tracking-[1rem] text-white">
                                     {sideText}
                                 </p>
                             </div>
                         </div>
-                        <div className="w-1/2 h-1/5 md:h-[30%] flex items-end">
-                            <div className="border-r border-solid border-white size-full"></div>
+                        <div className="flex h-1/5 w-1/2 items-end md:h-[30%]">
+                            <div className="size-full border-r border-solid border-white"></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div className="size-full">{currentPage}</div>
-            <div className="z-[-1] absolute top-0 size-full">
+            <div className="absolute top-0 z-[-1] size-full">
                 <canvas ref={canvasRef} />
             </div>
         </div>
