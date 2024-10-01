@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import './header.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,10 +23,6 @@ export default function RootLayout({
                     name="viewport"
                     content="width=device-width, initial-scale=1.0"
                 />
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-                />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" />
                 <link
@@ -33,7 +30,7 @@ export default function RootLayout({
                     rel="stylesheet"
                 ></link>
             </head>
-            <body className="bg-primary">{children}</body>
+            <body className="bg-primary w-screen h-screen">{children}</body>
         </html>
     )
 }

@@ -34,6 +34,37 @@ const Top: React.FC<TopProps> = ({ setIndex, animationFlag }) => {
                     animationFlag.current = false
                 } else if (event.deltaY < 0) {
                     console.log('上方向にホイールしました')
+                    setTimeout(() => {
+                        eventFlg.current = false
+                    }, 1000)
+                }
+            }
+
+            const handleTouchStart = (e: TouchEvent) => {
+                setStartY(e.touches[0].clientY)
+            }
+
+            const handleTouchMove = (e: TouchEvent) => {
+                if (eventFlg.current) return
+                const endY = e.touches[0].clientY
+                const deltaY = endY - startY
+
+                if (Math.abs(deltaY) > 50) {
+                    // スワイプ距離が50px以上であるか確認
+                    if (deltaY < 0) {
+                        eventFlg.current = true
+                        content.classList.remove('animate-fade-in')
+                        content.classList.add('animate-fade-out')
+                        setTimeout(() => {
+                            setIndex(1)
+                        }, 1000)
+                    } else {
+                        eventFlg.current = true
+
+                        setTimeout(() => {
+                            eventFlg.current = false
+                        }, 1000)
+                    }
                 }
             }
 
@@ -41,6 +72,8 @@ const Top: React.FC<TopProps> = ({ setIndex, animationFlag }) => {
 
             return () => {
                 window.removeEventListener('wheel', handleWheel)
+                window.removeEventListener('touchstart', handleTouchStart)
+                window.removeEventListener('touchmove', handleTouchMove)
             }
         }
     }, [animationFlag, handlePageTransition])
@@ -58,7 +91,7 @@ const Top: React.FC<TopProps> = ({ setIndex, animationFlag }) => {
                         </p>
                         <div className="flex w-full justify-center md:justify-start">
                             <p className="w-fit border-b border-solid border-white font-nico tracking-[0.5rem] text-white">
-                                SFI-aggregation
+                                apical-point
                             </p>
                         </div>
                     </div>
