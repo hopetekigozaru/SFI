@@ -12,7 +12,6 @@ export const onResize = (
         // サイズを取得
         const width = window.innerWidth
         const height = window.innerHeight
-        console.log(window.innerWidth, window.innerHeight)
 
         // レンダラーのサイズを調整する
         renderer.setPixelRatio(window.devicePixelRatio)

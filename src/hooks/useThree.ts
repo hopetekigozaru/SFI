@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Line2 } from 'three/examples/jsm/Addons.js'
 import { createCamera } from '../../three/Create/createCamera'
@@ -21,30 +21,82 @@ export default function useThree(
     const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null)
     const [scene] = useState<THREE.Scene>(new THREE.Scene())
     const [lines, setLines] = useState<Array<Line2>>([])
-    const mediaQueryMobile = window.matchMedia('(max-width: 767px)')
-    const mediaQueryTablet = window.matchMedia(
-        '(min-width: 768px) and (max-width: 1024px)',
+    const [mediaQueries, setMediaQueries] = useState<{
+        mobile: MediaQueryList | undefined,
+        tablet: MediaQueryList | undefined
+    }>({ mobile: undefined, tablet: undefined })
+
+    const animationRef = useRef<ReturnType<typeof Animation> | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setMediaQueries({
+                mobile: window.matchMedia('(max-width: 767px)'),
+                tablet: window.matchMedia('(min-width: 768px) and (max-width: 1024px)')
+            })
+        }
+    }, [])
+
+useEffect(() => {
+    if (mediaQueries.mobile && mediaQueries.tablet) {
+        animationRef.current = Animation(mediaQueries.mobile, mediaQueries.tablet, camera);
+    }
+}, [mediaQueries.mobile, mediaQueries.tablet, camera]);
+
+    useEffect(() => {
+        if (mediaQueries.mobile && mediaQueries.tablet) {
+        animationRef.current = Animation(mediaQueries.mobile, mediaQueries.tablet, camera)
+        }
+    }, [camera, mediaQueries.mobile, mediaQueries.tablet])
+
+    const moveCameraZAsync = useCallback(
+    (targetZMb: number, targetZTb: number, targetZPc: number, easeFactorNum: number) => {
+        return new Promise<void>((resolve) => {
+            if (animationRef.current) {
+                animationRef.current.moveCameraZ(targetZMb, targetZTb, targetZPc, easeFactorNum, resolve);
+            } else {
+                resolve();
+            }
+        });
+    },
+    []
+);
+
+    const lineAddOpacityAsync = useCallback(
+        (linesToAnimate: Line2[]) => {
+            return new Promise<void>((resolve) => {
+                if (animationRef.current) {
+                animationRef.current.lineAddOpacity(linesToAnimate, { current: false }, resolve)
+                }
+            })
+        },
+        []
     )
 
-    const { moveCameraZ, lineAddOpacity, lineRemoveOpacity } = Animation(
-        mediaQueryMobile,
-        mediaQueryTablet,
-        camera,
+    const lineRemoveOpacityAsync = useCallback(
+        (linesToAnimate: Line2[]) => {
+            return new Promise<void>((resolve) => {
+                if (animationRef.current) {
+                animationRef.current.lineRemoveOpacity(linesToAnimate, resolve)
+                }
+            })
+        },
+        []
     )
 
     useEffect(() => {
-        if (!canvasRef.current) {
+        if (!canvasRef.current || !mediaQueries.mobile) {
             return
         }
         const newRenderer = createRenderer(canvasRef.current)
 
-        const newCamera = createCamera(mediaQueryMobile)
-        console.log('aaaa')
+        const newCamera = createCamera(mediaQueries.mobile)
         setRenderer(newRenderer ?? null)
         setCamera(newCamera)
-    }, [canvasRef])
+    }, [canvasRef, mediaQueries.mobile])
 
     useEffect(() => {
+        console.log(!renderer , !camera)
         if (!renderer || !camera) {
             return // rendererがnullの場合は何もしない
         }
@@ -70,6 +122,7 @@ export default function useThree(
         scene.add(directionalLight)
 
         const composer = createComposer(renderer, scene, camera)
+        
 
         // 初期化のために実行
         resize()
@@ -78,7 +131,9 @@ export default function useThree(
 
         const animate = () => {
             requestAnimationFrame(animate)
-            mainSphere.children[1].rotation.z += -0.02
+            if (mainSphere.children[1]) {
+                mainSphere.children[1].rotation.z += -0.02
+            }
             composer.render()
         }
 
@@ -90,14 +145,10 @@ export default function useThree(
     }, [renderer, camera, scene])
 
     return {
-        THREE,
-        renderer,
-        camera,
-        scene,
-        moveCameraZ,
+        moveCameraZ: moveCameraZAsync,
         canvas: canvasRef.current,
-        lineAddOpacity,
-        lineRemoveOpacity,
+        lineAddOpacity: lineAddOpacityAsync,
+        lineRemoveOpacity: lineRemoveOpacityAsync,
         lines,
     }
 }

@@ -1,75 +1,91 @@
-import { Dispatch, SetStateAction, useEffect } from 'react'
+import { Dispatch, MutableRefObject, SetStateAction, useEffect, useState } from 'react'
 
 interface AboutProps {
-    setIndex: Dispatch<SetStateAction<number>> // 正しい型指定に修正
+    setIndex: Dispatch<SetStateAction<number>>
+    animationFlag: MutableRefObject<boolean>
 }
 
-const About: React.FC<AboutProps> = ({ setIndex }) => {
+const About: React.FC<AboutProps> = ({ setIndex, animationFlag }) => {
+    const [startY, setStartY] = useState(0)
+    
     useEffect(() => {
-        const content: HTMLElement | null =
-            document.getElementById('mainSection')
+        const content: HTMLElement | null = document.getElementById('mainSection');
+        
         if (content) {
             const handleWheel = async (event: WheelEvent) => {
-                if (eventFlg.current) return
+                if (animationFlag.current) return;
 
+                animationFlag.current = true;
                 if (event.deltaY > 0) {
-                    eventFlg.current = true
-                    content.classList.remove('animate-fade-in')
-                    content.classList.add('animate-fade-out')
-                    setTimeout(() => {
-                        setIndex(2)
-                        eventFlg.current = false
-                    }, 1000)
-
-                    eventFlg.current = false
+                    await new Promise<void>(resolve => {
+                        content.classList.remove('animate-fade-in');
+                        content.classList.add('animate-fade-out');
+                        setTimeout(() => {
+                            setIndex(2);
+                            resolve();
+                        }, 1000);
+                    });
                 } else if (event.deltaY < 0) {
-                    eventFlg.current = true
-
-                    content.classList.remove('animate-fade-in')
-                    content.classList.add('animate-fade-out')
-                    setTimeout(() => {
-                        setIndex(0)
-                        eventFlg.current = false
-                    }, 1000)
+                    await new Promise<void>(resolve => {
+                        content.classList.remove('animate-fade-in');
+                        content.classList.add('animate-fade-out');
+                        setTimeout(() => {
+                            setIndex(0);
+                            resolve();
+                        }, 1000);
+                    });
                 }
-            }
+                animationFlag.current = false;
+            };
 
             const handleTouchStart = (e: TouchEvent) => {
-                setStartY(e.touches[0].clientY)
-            }
+                if (animationFlag.current) return;
+                setStartY(e.touches[0].clientY);
+            };
 
-            const handleTouchMove = (e: TouchEvent) => {
-                const endY = e.touches[0].clientY
-                const deltaY = endY - startY
+            const handleTouchMove = async (e: TouchEvent) => {
+                if (animationFlag.current) return;
+                const endY = e.touches[0].clientY;
+                const deltaY = endY - startY;
 
                 if (Math.abs(deltaY) > 50) {
-                    if (eventFlg.current) return
-
+                    animationFlag.current = true;
                     if (deltaY < 0) {
-                        eventFlg.current = true
-                        eventFlg.current = false
+                        await new Promise<void>(resolve => {
+                            content.classList.remove('animate-fade-in');
+                            content.classList.add('animate-fade-out');
+                            setTimeout(() => {
+                                setIndex(2);
+                                resolve();
+                            }, 1000);
+                        });
                     } else {
-                        eventFlg.current = true
-                        content.classList.remove('animate-fade-in')
-                        content.classList.add('animate-fade-out')
-                        setTimeout(() => {
-                            setIndex(0)
-                            eventFlg.current = false
-                        }, 1000)
+                        await new Promise<void>(resolve => {
+                            content.classList.remove('animate-fade-in');
+                            content.classList.add('animate-fade-out');
+                            setTimeout(() => {
+                                setIndex(0);
+                                resolve();
+                            }, 1000);
+                        });
                     }
+                    animationFlag.current = false;
                 }
-            }
+            };
 
-            window.addEventListener('touchstart', handleTouchStart)
-            window.addEventListener('touchmove', handleTouchMove)
-            window.addEventListener('wheel', handleWheel)
+            window.addEventListener('touchstart', handleTouchStart);
+            window.addEventListener('touchmove', handleTouchMove);
+            window.addEventListener('wheel', handleWheel);
 
             return () => {
-                window.removeEventListener('wheel', handleWheel)
-            }
-        }, [setIndex]) // setIndexを依存リストに追加
+                window.removeEventListener('touchstart', handleTouchStart);
+                window.removeEventListener('touchmove', handleTouchMove);
+                window.removeEventListener('wheel', handleWheel);
+            };
+        }
+    }, [setIndex, animationFlag]);
 
-    return <div>aaaaaaaaaaaaaa</div>
-}
+    return <div id="mainSection">About Content</div>;
+};
 
-export default About
+export default About;
