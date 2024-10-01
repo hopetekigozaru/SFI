@@ -1,36 +1,38 @@
-'use client'
-import {
-    Dispatch,
-    MutableRefObject,
-    SetStateAction,
-    useEffect,
-    useState,
-} from 'react'
+import { Dispatch, MutableRefObject, SetStateAction, useEffect, useCallback } from 'react'
 
 interface TopProps {
     setIndex: Dispatch<SetStateAction<number>>
-    eventFlg: MutableRefObject<boolean>
+    animationFlag: MutableRefObject<boolean>
 }
 
-const Top: React.FC<TopProps> = ({ setIndex, eventFlg }) => {
-    const [startY, setStartY] = useState(0)
+const Top: React.FC<TopProps> = ({ setIndex, animationFlag }) => {
+    const handlePageTransition = useCallback(() => {
+        const content = document.getElementById('mainSection')
+        if (content) {
+            content.classList.remove('animate-fade-in')
+            content.classList.add('animate-fade-out')
+
+            return new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    setIndex(1)
+                    resolve()
+                }, 1000)
+            })
+        }
+        return Promise.resolve()
+    }, [setIndex])
 
     useEffect(() => {
-        const content: HTMLElement | null =
-            document.getElementById('mainSection')
+        const content = document.getElementById('mainSection')
         if (content) {
             const handleWheel = async (event: WheelEvent) => {
-                if (eventFlg.current) return
-
+                if (animationFlag.current) return
+                
                 if (event.deltaY > 0) {
-                    eventFlg.current = true
-                    content.classList.remove('animate-fade-in')
-                    content.classList.add('animate-fade-out')
-                    setTimeout(() => {
-                        setIndex(1)
-                    }, 1000)
+                    animationFlag.current = true
+                    await handlePageTransition()
+                    animationFlag.current = false
                 } else if (event.deltaY < 0) {
-                    eventFlg.current = true
                     console.log('上方向にホイールしました')
                     setTimeout(() => {
                         eventFlg.current = false
@@ -66,8 +68,6 @@ const Top: React.FC<TopProps> = ({ setIndex, eventFlg }) => {
                 }
             }
 
-            window.addEventListener('touchstart', handleTouchStart)
-            window.addEventListener('touchmove', handleTouchMove)
             window.addEventListener('wheel', handleWheel)
 
             return () => {
@@ -76,7 +76,7 @@ const Top: React.FC<TopProps> = ({ setIndex, eventFlg }) => {
                 window.removeEventListener('touchmove', handleTouchMove)
             }
         }
-    }, [setIndex, eventFlg, startY])
+    }, [animationFlag, handlePageTransition])
 
     return (
         <section
@@ -86,10 +86,8 @@ const Top: React.FC<TopProps> = ({ setIndex, eventFlg }) => {
             <div className="h-2/5 w-full md:w-2/5">
                 <div className="size-full">
                     <div className="flex size-full flex-col items-center justify-center md:block">
-                        <p className="text-center font-zen-maru text-4xl font-bold leading-[3.5rem] tracking-[0.5rem] text-white md:text-start md:text-[360%] md:leading-[5rem]">
-                            人と人を技術
-                            <br />
-                            でつなぐ。
+                        <p className="text-center font-zen-maru text-4xl font-bold leading-[3.5rem] tracking-[0.5rem] text-white md:text-start md:text-[250%] md:leading-[5rem]">
+                            創造性を解き放つ。
                         </p>
                         <div className="flex w-full justify-center md:justify-start">
                             <p className="w-fit border-b border-solid border-white font-nico tracking-[0.5rem] text-white">

@@ -6,50 +6,78 @@ import Top from '@/features/components/Top'
 import useThree from '@/hooks/useThree'
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
-import Logo from '../../public/images/logo/Frame 3 (1).png'
+import Logo from '../../public/images/logo/SFI-logo.png'
 
 export default function Home() {
     const topEventFlg = useRef<boolean>(false)
     const aboutEventFlg = useRef<boolean>(false)
     const [pageIndex, setPageIndex] = useState<number>(0)
-    const [sideText, setSideText] = useState<String>('TO　THE　POINT')
+    const [sideText, setSideText] = useState<String>('WELCOME')
     const [currentIndex, setCurrentIndex] = useState<number>(0)
+    const animationFlag = useRef(false)
     const [currentPage, setCurrentPage] = useState<React.ReactElement>(
-        <Top setIndex={setPageIndex} eventFlg={topEventFlg} />,
+        <Top setIndex={setPageIndex} animationFlag={animationFlag} />,
     )
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const { THREE, renderer, camera, scene, topNextAnime, aboutPrevAnime } =
-        useThree(canvasRef)
+    const {
+        moveCameraZ,
+        lineAddOpacity,
+        lineRemoveOpacity,
+        lines,
+    } = useThree(canvasRef)
 
     useEffect(() => {
-        if (currentIndex < pageIndex) {
-            if (pageIndex === 1) {
-                console.log(121212)
-                topNextAnime(() => {
+        const handlePageTransition = async () => {
+            if (animationFlag.current) return;
+            animationFlag.current = true;
+
+            if (currentIndex < pageIndex) {
+                if (pageIndex === 1) {
+                    await moveCameraZ(25, 20, 15, 0.02)
                     setCurrentPage(
                         <About
                             setIndex={setPageIndex}
-                            eventFlg={aboutEventFlg}
+                            animationFlag={animationFlag}
                         />,
                     )
                     setSideText('ABOUT')
-                    setCurrentIndex(pageIndex) // ページ遷移後、currentIndexを更新
-                    topEventFlg.current = false
-                })
-            }
-        } else if (currentIndex > pageIndex) {
-            if (pageIndex === 0) {
-                aboutPrevAnime(() => {
+                } else if (pageIndex === 2) {
+                    await moveCameraZ(1500, 80, 900, 0.01)
                     setCurrentPage(
-                        <Top setIndex={setPageIndex} eventFlg={topEventFlg} />,
+                        <Info
+                            setIndex={setPageIndex}
+                            animationFlag={animationFlag}
+                        />,
                     )
-                    setSideText('TO　THE　POINT')
-                    setCurrentIndex(pageIndex) // ページ遷移後、currentIndexを更新
-                    aboutEventFlg.current = false
-                })
+                    await lineAddOpacity(lines)
+                    setSideText('Info')
+                }
+            } else if (currentIndex > pageIndex) {
+                if (pageIndex === 0) {
+                    await moveCameraZ(80, 50, 50, 0.01)
+                    setCurrentPage(
+                        <Top setIndex={setPageIndex} animationFlag={animationFlag} />,
+                    )
+                    setSideText('WELCOME')
+                } else if (pageIndex === 1) {
+                    await lineRemoveOpacity(lines)
+                    await moveCameraZ(25, 20, 15, 0.01)
+                    setCurrentPage(
+                        <About
+                            setIndex={setPageIndex}
+                            animationFlag={animationFlag}
+                        />,
+                    )
+                    setSideText('ABOUT')
+                }
             }
+
+            setCurrentIndex(pageIndex)
+            animationFlag.current = false;
         }
-    }, [pageIndex, currentIndex, topNextAnime, aboutPrevAnime])
+
+        handlePageTransition()
+    }, [pageIndex, currentIndex, moveCameraZ, lineAddOpacity, lineRemoveOpacity, lines])
 
     return (
         <div className="relative z-10  h-screen w-screen">
@@ -60,8 +88,8 @@ export default function Home() {
                             <Image
                                 src={Logo}
                                 alt="ロゴ"
-                                width={65}
-                                height={65}
+                                width={200}
+                                height={200}
                             />
                         </div>
                         <div className="flex h-full w-[50%] items-center justify-end">

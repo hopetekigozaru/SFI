@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { createComposer } from '../../three/Create/createComposer'
 import {
@@ -15,42 +15,83 @@ export default function useThree(
     const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null)
     const [camera, setCamera] = useState<THREE.PerspectiveCamera | null>(null)
     const [scene] = useState<THREE.Scene>(new THREE.Scene())
-    const [mediaQueryMobile, setMediaQueryMobile] = useState<MediaQueryList>()
-    const [mediaQueryTablet, setMediaQueryTablet] = useState<MediaQueryList>()
+    const [lines, setLines] = useState<Array<Line2>>([])
+    const [mediaQueries, setMediaQueries] = useState<{
+        mobile: MediaQueryList | undefined,
+        tablet: MediaQueryList | undefined
+    }>({ mobile: undefined, tablet: undefined })
+
+    const animationRef = useRef<ReturnType<typeof Animation> | null>(null);
 
     useEffect(() => {
-        setMediaQueryMobile(window.matchMedia('(max-width: 767px)'))
-        setMediaQueryTablet(
-            window.matchMedia('(min-width: 768px) and (max-width: 1024px)'),
-        )
+        if (typeof window !== 'undefined') {
+            setMediaQueries({
+                mobile: window.matchMedia('(max-width: 767px)'),
+                tablet: window.matchMedia('(min-width: 768px) and (max-width: 1024px)')
+            })
+        }
     }, [])
 
+useEffect(() => {
+    if (mediaQueries.mobile && mediaQueries.tablet) {
+        animationRef.current = Animation(mediaQueries.mobile, mediaQueries.tablet, camera);
+    }
+}, [mediaQueries.mobile, mediaQueries.tablet, camera]);
+
     useEffect(() => {
-        if (!canvasRef.current) {
+        if (mediaQueries.mobile && mediaQueries.tablet) {
+        animationRef.current = Animation(mediaQueries.mobile, mediaQueries.tablet, camera)
+        }
+    }, [camera, mediaQueries.mobile, mediaQueries.tablet])
+
+    const moveCameraZAsync = useCallback(
+    (targetZMb: number, targetZTb: number, targetZPc: number, easeFactorNum: number) => {
+        return new Promise<void>((resolve) => {
+            if (animationRef.current) {
+                animationRef.current.moveCameraZ(targetZMb, targetZTb, targetZPc, easeFactorNum, resolve);
+            } else {
+                resolve();
+            }
+        });
+    },
+    []
+);
+
+    const lineAddOpacityAsync = useCallback(
+        (linesToAnimate: Line2[]) => {
+            return new Promise<void>((resolve) => {
+                if (animationRef.current) {
+                animationRef.current.lineAddOpacity(linesToAnimate, { current: false }, resolve)
+                }
+            })
+        },
+        []
+    )
+
+    const lineRemoveOpacityAsync = useCallback(
+        (linesToAnimate: Line2[]) => {
+            return new Promise<void>((resolve) => {
+                if (animationRef.current) {
+                animationRef.current.lineRemoveOpacity(linesToAnimate, resolve)
+                }
+            })
+        },
+        []
+    )
+
+    useEffect(() => {
+        if (!canvasRef.current || !mediaQueries.mobile) {
             return
         }
-        const mediaQueryMobile = window.matchMedia('(max-width: 768px)')
+        const newRenderer = createRenderer(canvasRef.current)
 
-        const newRenderer = new THREE.WebGLRenderer({
-            canvas: canvasRef.current,
-            antialias: true,
-            alpha: true,
-        })
-        newRenderer.setSize(window.innerWidth, window.innerHeight)
-        newRenderer.setPixelRatio(window.devicePixelRatio)
-        setRenderer(newRenderer)
-
-        const newCamera = new THREE.PerspectiveCamera()
-        if (mediaQueryMobile.matches) {
-            newCamera.position.set(0, 0, 80)
-        } else {
-            newCamera.position.set(0, 0, 50)
-        }
-        newCamera.aspect = window.innerWidth / window.innerHeight
+        const newCamera = createCamera(mediaQueries.mobile)
+        setRenderer(newRenderer ?? null)
         setCamera(newCamera)
-    }, [canvasRef])
+    }, [canvasRef, mediaQueries.mobile])
 
     useEffect(() => {
+        console.log(!renderer , !camera)
         if (!renderer || !camera) {
             return // rendererがnullの場合は何もしない
         }
@@ -76,6 +117,7 @@ export default function useThree(
         scene.add(directionalLight)
 
         const composer = createComposer(renderer, scene, camera)
+        
 
         // 初期化のために実行
         onResize()
@@ -107,7 +149,9 @@ export default function useThree(
 
         const animate = () => {
             requestAnimationFrame(animate)
-            mainSphere.children[1].rotation.z += -0.02
+            if (mainSphere.children[1]) {
+                mainSphere.children[1].rotation.z += -0.02
+            }
             composer.render()
         }
 
@@ -204,14 +248,10 @@ export default function useThree(
     }
 
     return {
-        THREE,
-        renderer,
-        camera,
-        scene,
-        moveCameraZ,
+        moveCameraZ: moveCameraZAsync,
         canvas: canvasRef.current,
-        lineAddOpacity,
-        lineRemoveOpacity,
+        lineAddOpacity: lineAddOpacityAsync,
+        lineRemoveOpacity: lineRemoveOpacityAsync,
         lines,
     }
 }

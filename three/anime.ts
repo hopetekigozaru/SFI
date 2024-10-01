@@ -1,11 +1,12 @@
+import { MutableRefObject } from 'react'
 import * as THREE from 'three'
 import { Line2 } from 'three/examples/jsm/Addons.js'
+
 export const Animation = (
     mediaQueryMobile: MediaQueryList | undefined,
     mediaQueryTablet: MediaQueryList,
     camera: THREE.PerspectiveCamera | null,
 ) => {
-    // カメラをZ軸方向に移動させるアニメーション
     const moveCameraZ = (
         targetZMb: number,
         targetZTb: number,
@@ -13,22 +14,15 @@ export const Animation = (
         easeFactorNum: number,
         callback: () => void,
     ) => {
-        if (!camera) return
-        if (!mediaQueryMobile || !mediaQueryTablet) return
+        if (!camera || !mediaQueryMobile || !mediaQueryTablet) {
+            callback()
+            return
+        }
+
         let animationId: number
         const currentZ = camera.position.z
-        let targetZ //最終的に移動するZ座標
-        let easeFactor //移動の速度
-        if (mediaQueryMobile.matches) {
-            targetZ = targetZMb //80
-            easeFactor = easeFactorNum //0.01
-        } else if (mediaQueryTablet.matches) {
-            targetZ = targetZTb //50
-            easeFactor = easeFactorNum
-        } else {
-            targetZ = targetZPc //50
-            easeFactor = easeFactorNum
-        }
+        let targetZ = mediaQueryMobile.matches ? targetZMb : (mediaQueryTablet.matches ? targetZTb : targetZPc)
+        const easeFactor = easeFactorNum
         const distanceToTarget = Math.abs(currentZ - targetZ)
         const speed = distanceToTarget * easeFactor
         const direction = targetZ > currentZ ? 1 : -1
@@ -54,58 +48,59 @@ export const Animation = (
         animate()
     }
 
-    const lineAddOpacity = (lines: Array<Line2>) => {
-        // アニメーション関数
+    const lineAddOpacity = (lines: Array<Line2>, eventFlg: MutableRefObject<boolean>, callback: () => void) => {
         const lineOpacity = (line: Line2) => {
             line.material.opacity += 0.01
             if (line.material.opacity >= 1.0) {
                 line.material.opacity = 1.0
-                return true // アニメーションを終了
+                return true
             }
-            return false // アニメーションを継続
+            return false
         }
 
-        // アニメーションループ
         const animate = () => {
             let allCompleted = true
 
             lines.forEach((line) => {
                 if (!lineOpacity(line)) {
-                    allCompleted = false // 少なくとも一つのアニメーションが未完了
+                    allCompleted = false
                 }
             })
 
             if (!allCompleted) {
-                requestAnimationFrame(animate) // 未完了なら次のフレームをリクエスト
+                requestAnimationFrame(animate)
+            } else {
+                eventFlg.current = false
+                callback()
             }
         }
 
         animate()
     }
 
-    const lineRemoveOpacity = (lines: Array<Line2>) => {
-        // アニメーション関数
+    const lineRemoveOpacity = (lines: Array<Line2>, callback: () => void) => {
         const lineOpacity = (line: Line2) => {
             line.material.opacity -= 0.05
             if (line.material.opacity <= 0.0) {
                 line.material.opacity = 0.0
-                return true // アニメーションを終了
+                return true
             }
-            return false // アニメーションを継続
+            return false
         }
 
-        // アニメーションループ
         const animate = () => {
             let allCompleted = true
 
             lines.forEach((line) => {
                 if (!lineOpacity(line)) {
-                    allCompleted = false // 少なくとも一つのアニメーションが未完了
+                    allCompleted = false
                 }
             })
 
             if (!allCompleted) {
-                requestAnimationFrame(animate) // 未完了なら次のフレームをリクエスト
+                requestAnimationFrame(animate)
+            } else {
+                callback()
             }
         }
 
